@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>你适合大厂吗 | 你适合一线城市吗 2026版</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            /* 科技蓝主题色 */
+            --primary: #74b9ff; 
+            --primary-dark: #0984e3;
+            --primary-deep: #273c75; 
+            --bg-gradient-start: #f0f7ff;
+            --bg-gradient-end: #ffffff;
+            --text-main: #2d3436;
+            --text-sub: #636e72;
+            --card-bg: #ffffff;
+            --border-light: #E5E7EB;
+            --radius: 20px;
+        }
+
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            width: 100%; max-width: 500px; min-height: 100vh;
+            background: #fff; display: flex; flex-direction: column;
+            margin: 0 auto; box-shadow: 0 0 40px rgba(0,0,0,0.03);
+            position: relative;
+        }
+
+        /* 动画 */
+        .fade-in { animation: fadeIn 0.4s ease-in forwards; }
+        .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .breathe-effect { animation: breathe 5s ease-in-out infinite alternate; }
+        @keyframes breathe {
+            0% { box-shadow: 0 4px 15px rgba(0,0,0,0.02); transform: translateY(0); }
+            100% { box-shadow: 0 14px 35px rgba(9, 132, 227, 0.1); transform: translateY(-3px); }
+        }
+
+        /* 按钮 */
+        .btn {
+            background: var(--primary-dark); color: white; border: none;
+            padding: 16px 28px; border-radius: 30px; font-size: 17.5px; font-weight: 700;
+            width: 100%; cursor: pointer; box-shadow: 0 8px 20px rgba(9, 132, 227, 0.25);
+            transition: transform 0.1s; letter-spacing: 1px; display: flex; justify-content: center; align-items: center; gap: 8px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn-outline {
+            background: transparent; color: var(--primary-dark); border: 2px solid var(--primary-dark);
+            padding: 10px 24px; border-radius: 30px; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 15px; width: 100%;
+        }
+
+        /* 封面 */
+        #page-intro { padding: 40px 24px; text-align: center; display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+        .cover-tag { display: inline-block; background: #e3f2fd; color: var(--primary-dark); padding: 8px 16px; border-radius: 10px; font-size: 14px; font-weight: 700; margin-bottom: 24px; align-self: center; }
+        .cover-title { font-size: 38px; line-height: 1.3; margin-bottom: 16px; color: #222; font-weight: 900; letter-spacing: -1px; }
+        .cover-subtitle { font-size: 16px; color: var(--text-sub); line-height: 1.7; margin-bottom: 40px; }
+
+        /* 测试页 */
+        #page-test { padding: 24px; display: none; flex-direction: column; min-height: 100vh; }
+        .test-top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; font-size: 16px; font-weight: 700; }
+        .back-btn { color: #888; cursor: pointer; padding: 4px 8px; margin-left: -8px; border-radius: 6px; transition: background 0.2s; display: flex; align-items: center; gap: 4px; }
+        .back-btn:active { background: #f0f0f0; }
+        .back-btn.hidden { visibility: hidden; }
+        .progress-text { color: var(--primary-dark); font-family: monospace; font-size: 16px;}
+        .progress-bar-bg { width: 100%; height: 8px; background: #e3f2fd; border-radius: 4px; margin-bottom: 30px; }
+        .progress-fill { height: 100%; background: var(--primary-dark); width: 0%; border-radius: 4px; transition: width 0.3s ease; }
+        .question-text { font-size: 19px; font-weight: 800; line-height: 1.6; margin-bottom: 30px; color: #222; text-align: justify; letter-spacing: 0.5px;}
+        .option-btn {
+            background: #fafcff; padding: 18px 20px; border-radius: 16px; margin-bottom: 14px;
+            font-size: 16px; color: #374151; cursor: pointer; border: 2px solid transparent; transition: all 0.2s;
+            font-weight: 500; text-align: left; line-height: 1.6;
+        }
+        .option-btn:active { transform: scale(0.98); background: #e3f2fd; }
+        .option-btn.selected { background: #e3f2fd; border-color: var(--primary-dark); color: var(--primary-dark); font-weight: 700; }
+
+        /* 结果页 */
+        #page-result { display: none; background: #f0f7ff; padding-bottom: 60px; min-height: 100vh; }
+        .result-hero { background: #fff; padding: 40px 24px 30px; border-bottom-left-radius: 36px; border-bottom-right-radius: 36px; box-shadow: 0 10px 40px rgba(9, 132, 227, 0.08); text-align: center; margin-bottom: 20px; position: relative; }
+        .result-type-badge { background: #222; color: #fff; padding: 6px 16px; border-radius: 8px; font-size: 14.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; display: inline-block; }
+        .result-big-title { font-size: 34px; font-weight: 900; color: #222; margin: 6px 0 10px; letter-spacing: -1px; }
+        .result-sub-title { font-size: 16px; color: #777; font-weight: 600; margin-bottom: 24px; }
+        
+        /* 大厂适性指数与条状图 */
+        .score-display { display: flex; justify-content: center; align-items: baseline; text-align: center; font-size: 96px; font-weight: 900; color: var(--primary-dark); font-family: monospace; line-height: 1; margin-top: 10px; transition: color 0.1s, text-shadow 0.1s; text-shadow: 0 8px 25px rgba(9, 132, 227, 0.25);}
+        .score-display span:last-child { font-size: 40px; margin-left: 4px; transition: color 0.1s; text-shadow: none;}
+        
+        .score-burst { animation: scoreBurst 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        @keyframes scoreBurst {
+            0% { transform: scale(1); filter: brightness(1); }
+            30% { transform: scale(1.12); filter: brightness(1.3); }
+            50% { transform: scale(1.08) translateX(-3px) rotate(-1deg); }
+            70% { transform: scale(1.08) translateX(3px) rotate(1deg); }
+            100% { transform: scale(1) translateX(0) rotate(0); filter: brightness(1); }
+        }
+
+        .tier-bar-container { position: relative; margin: 40px 10px 30px; }
+        .tier-track { height: 12px; background: #E5E7EB; border-radius: 6px; position: relative; }
+        .tier-fill { position: absolute; left: 0; top: 0; height: 100%; border-radius: 6px; background: linear-gradient(90deg, #74b9ff, #0984e3); transition: width 0.1s linear; width: 0%; }
+        .tier-marker { position: absolute; top: -14px; width: 4px; height: 40px; background: var(--text-main); border-radius: 2px; transform: translateX(-50%); transition: left 0.1s linear; left: 0%;}
+        
+        .tier-marker-label { position: absolute; top: -34px; left: 50%; transform: translateX(-50%); background: var(--text-main); color: #fff; font-size: 13px; padding: 5px 12px; border-radius: 4px; white-space: nowrap; font-weight: 700; box-shadow: 0 4px 10px rgba(0,0,0,0.15);}
+        .tier-marker-label::after { content: ''; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%); border-width: 4px 4px 0; border-style: solid; border-color: var(--text-main) transparent transparent transparent; }
+        .tier-labels { display: flex; justify-content: space-between; margin-top: 24px; position: relative; padding: 0;}
+        .t-label { font-size: 12px; color: var(--text-sub); text-align: center; flex: 0 0 20%; line-height: 1.4; font-weight: 600; position: relative;}
+        .t-label:first-child { text-align: left; }
+        .t-label:last-child { text-align: right; }
+
+        /* 雷达图区块 */
+        .radar-wrapper { display: flex; justify-content: center; margin: 10px 0 20px; }
+
+        /* 关键词区块 */
+        .keywords-box { margin: 10px 0 24px; display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+        .kw-tag { background: #e3f2fd; color: var(--primary-dark); padding: 6px 14px; border-radius: 20px; font-size: 14px; font-weight: 700; }
+        
+        /* 短评建议框 */
+        .short-eval-box { background: #fdfdfd; border-left: 4px solid var(--primary-dark); padding: 18px; border-radius: 0 12px 12px 0; text-align: left; margin-bottom: 24px; font-size: 15px; color: #444; line-height: 1.7; box-shadow: 0 2px 10px rgba(0,0,0,0.02); }
+        .short-eval-box strong { color: var(--primary-dark); display: block; margin-bottom: 6px; font-size: 16px; }
+
+        /* 深度报告排版优化 (学术风放大版) */
+        #full-report-container { display: none; margin-top: 20px; text-align: left; }
+        .report-card { background: #fff; border-radius: 24px; padding: 28px 20px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04); margin-bottom: 20px; }
+        
+        .section-title { font-size: 20px; font-weight: 800; color: #111; margin: 36px 0 20px; display: flex; align-items: center; gap: 8px; border-bottom: 2px solid #f0f0f0; padding-bottom: 12px; }
+        
+        /* 放大正文与行高，提升阅读质感 */
+        .report-p { font-size: 16.5px; color: #374151; line-height: 1.85; margin-bottom: 20px; text-align: justify; letter-spacing: 0.3px;}
+        
+        /* 分维度详细解析列表 */
+        .dim-detail-list { padding: 0; list-style: none; margin: 0 0 24px 0; }
+        .dim-detail-list li { background: #fcfcfc; border: 1px solid #e5e7eb; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .dim-detail-list .dim-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .dim-detail-list .dim-name { font-size: 16px; font-weight: 800; color: var(--primary-deep); }
+        .dim-detail-list .dim-score { font-size: 15px; font-family: monospace; font-weight: 700; color: var(--primary-dark); background: #e3f2fd; padding: 4px 10px; border-radius: 20px; }
+        .dim-detail-list .dim-desc { font-size: 15.5px; color: #4b5563; line-height: 1.8; text-align: justify; margin: 0; }
+
+        /* 动态观测点 */
+        .dynamic-box { margin-top: 16px; padding: 18px 20px; background: #f8fbff; border-left: 4px solid var(--primary-dark); border-radius: 0 8px 8px 0;}
+        .dynamic-box p { font-size: 15.5px; color: #343a40; margin: 0; line-height: 1.8;}
+        .dynamic-box b { color: var(--primary-deep); font-weight: 800; display: block; margin-bottom: 4px;}
+
+        /* 风险与干预框 */
+        .crisis-box { background: #fff5f5; border-left: 4px solid #ff4757; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 24px; }
+        .crisis-box h5 { margin: 0 0 10px 0; color: #ff4757; font-size: 16.5px; font-weight: 800; }
+        .crisis-box p { margin: 0; font-size: 15.5px; line-height: 1.8; color: #4B5563; text-align: justify;}
+        
+        .rule-box { background: #f0fdf4; border-left: 4px solid #2ed573; padding: 20px; border-radius: 0 12px 12px 0; margin-bottom: 24px; }
+        .rule-box h5 { margin: 0 0 10px 0; color: #2ed573; font-size: 16.5px; font-weight: 800; }
+        .rule-box p { margin: 0; font-size: 15.5px; line-height: 1.8; color: #4B5563; text-align: justify;}
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 1. 封面 -->
+    <div id="page-intro" class="fade-in">
+        <div class="cover-tag">2026版 · 剥离伪装的 6维生态量表</div>
+        <h1 class="cover-title">你适合大厂吗？<br>深度生态匹配测评</h1>
+        <p class="cover-subtitle" style="text-align: justify; padding: 0 10px;">本测试基于社会学与行为干预模型设计。<br><br>我们将绕开职场中光鲜亮丽的话术，通过30道极度真实的微观情境，去量化您对高压竞争、严格考核以及孤独生存的真实耐受力。</p>
+        <button class="btn" style="margin-top: 20px;" onclick="initTest()">开始深度评估</button>
+    </div>
+
+    <!-- 2. 测试页 -->
+    <div id="page-test">
+        <div class="test-top-nav">
+            <div class="back-btn" id="btn-prev" onclick="prevQuestion()">← 上一题</div>
+            <div class="progress-text" id="progress-text">1 / 30</div>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-fill" id="progress-fill"></div></div>
+
+        <div id="question-wrapper" style="flex:1;">
+            <div class="question-text" id="question-text">题目加载中...</div>
+            <div id="options-box"></div>
+        </div>
+    </div>
+
+    <!-- 3. Loading -->
+    <div id="page-loading" style="display:none; height:100vh; flex-direction:column; justify-content:center; align-items:center; text-align:center;">
+        <div style="width:50px; height:50px; border:5px solid #e3f2fd; border-top:5px solid var(--primary-dark); border-radius:50%; animation:spin 1s linear infinite;"></div>
+        <h3 style="margin-top:24px; font-weight:800; font-size: 18px;">正在通过算法白盒推演...</h3>
+        <p style="color:#888; font-size:14.5px; line-height:1.8; margin-top:10px;">计算系统内耗常数...<br>匹配最优生态位...</p>
+    </div>
+
+    <!-- 4. 结果页 -->
+    <div id="page-result">
+        <div class="result-hero fade-in">
+            <!-- 核心截图区 -->
+            <div class="result-type-badge" id="res-badge">...</div>
+            <h1 class="result-big-title" id="res-title">...</h1>
+            <p class="result-sub-title" id="res-subtitle">...</p>
+            
+            <!-- 大厂适性指数与条状图 -->
+            <div style="margin-top: 10px;">
+                <div class="score-display" id="score-display-container">
+                    <span id="final-total-score">0</span><span id="score-percent-sign">%</span>
+                </div>
+                <p style="text-align: center; font-size: 15px; font-weight: 700; color: var(--text-sub); margin-bottom: 20px;">
+                    大厂适性存活指数
+                </p>
+
+                <div class="tier-bar-container">
+                    <div class="tier-track">
+                        <div class="tier-fill" id="tier-fill-bar"></div>
+                        <div class="tier-marker" id="tier-marker">
+                            <div class="tier-marker-label" id="tier-marker-label">你在这里</div>
+                        </div>
+                    </div>
+                    <div class="tier-labels">
+                        <div class="t-label">绝缘体<br>0%</div>
+                        <div class="t-label">边缘试探<br>25%</div>
+                        <div class="t-label">薛定谔的卷<br>50%</div>
+                        <div class="t-label">大厂预备役<br>75%</div>
+                        <div class="t-label">天选卷王<br>100%</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="width: 100%; height: 1px; background: var(--border-light); margin: 35px 0 25px;"></div>
+
+            <!-- 六维雷达图 -->
+            <div class="radar-wrapper">
+                <canvas id="radarChart" width="280" height="280"></canvas>
+            </div>
+
+            <!-- 关键词区块 -->
+            <div id="res-keywords" class="keywords-box"></div>
+
+            <!-- 简短评价与建议 -->
+            <div id="res-short-eval" class="short-eval-box"></div>
+            
+            <!-- 互动按钮区 -->
+            <button class="btn" id="btn-unlock" onclick="toggleReport()" style="margin-bottom: 10px;">
+                <span>🔓 解锁千字深度定制报告</span>
+            </button>
+            <button class="btn-outline" onclick="location.reload()">重新测试</button>
+
+            <!-- 动态千字报告容器 (默认隐藏) -->
+            <div id="full-report-container">
+                <div class="report-card" id="dynamic-report-content">
+                    <!-- JS动态注入内容 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+/* ---------------- 题库配置 ---------------- */
+const DIMS = { D1: '生存手牌', D2: '折腾指数', D3: '职场抽离', D4: '社交边界', D5: '回报耐心', D6: '职场消耗' };
+
+// 30道核心题目 (大厂生态特化版)
+// A(4分)代表一线/大厂偏好，D(1分)代表下沉/求稳偏好
+const coreQuestions = [
+    // D1: 生存手牌
+    { d: 'D1', t: "对你而言，职场中最能带来安全感的“护城河”是：", o: [{t:"市场需求度高、随时可以带走的硬核专业技能。",v:4},{t:"能够跨项目、跨部门解决复杂问题的综合实操经验。",v:3},{t:"在行业内长期积累的、能互通有无的关键人脉网络。",v:2},{t:"身处核心圈层，以及所在平台赋予的强大信任背书。",v:1}] },
+    { d: 'D1', t: "评估一份工作的长远价值时，你最看重它能否为你提供：", o: [{t:"业界高度认可的专业履历，提升个人市场溢价。",v:4},{t:"独立操盘完整项目的权限，积累个人作品集。",v:3},{t:"接触高净值客户或行业核心圈层的优质渠道。",v:2},{t:"融入一个极其稳定、互助且有保障的利益共同体。",v:1}] },
+    { d: 'D1', t: "当你规划未来三到五年的自我提升时，你更倾向于将精力投入在：", o: [{t:"考取含金量极高的资格认证，或掌握一门前沿技术。",v:4},{t:"提升业务统筹、团队协调以及项目落地能力。",v:3},{t:"积极参与行业社交，结识更多具有资源交换价值的人物。",v:2},{t:"经营与现有领导、核心团队成员的深度信任关系。",v:1}] },
+    { d: 'D1', t: "办理一项流程极其繁琐的私人事务，遇到阻碍时，你通常的做法是：", o: [{t:"研究政策文件与指南，坚持通过正规系统流程交涉。",v:4},{t:"倾向于寻求商业化的代办服务，用金钱换取效率。",v:3},{t:"询问有类似经验的朋友或前同事，获取避坑建议。",v:2},{t:"优先翻阅通讯录，寻找在相关系统内能够通融的熟人。",v:1}] },
+    { d: 'D1', t: "假设公司指派你前往完全陌生的城市开拓业务，出发前你最主要准备：", o: [{t:"详细调研当地的市场数据、竞品情况与考核指标。",v:4},{t:"梳理过往成功案例，准备一套标准化SOP以便复制。",v:3},{t:"通过现有社交网络，提前了解当地潜在合作方或渠道。",v:2},{t:"拜访公司高层，恳请引荐当地的关键人脉与地头蛇资源。",v:1}] },
+    // D2: 折腾指数
+    { d: 'D2', t: "在规划个人财富积累路径时，你底层的经济学偏好更接近于：", o: [{t:"承受较高失败概率，追求爆发式的增长（如期权、创业）。",v:4},{t:"在保障主业稳定的前提下，积极进行有风险的投资/副业。",v:3},{t:"保持平稳的收入节奏，依靠时间和复利稳健积累。",v:2},{t:"极度厌恶风险，将本金的绝对安全和现金流稳定放首位。",v:1}] },
+    { d: 'D2', t: "你如何看待职业生涯中“一眼望到头、按部就班”的状态？", o: [{t:"认为这是一种危险的停滞，会迫使自己主动寻找变局。",v:4},{t:"视其为阶段性休整期，但仍会保持对外部机会的扫描。",v:3},{t:"认为这是一种难得的平衡，有更多精力投入个人生活。",v:2},{t:"视其为最理想的终极状态，是安全感和幸福感的最大来源。",v:1}] },
+    { d: 'D2', t: "面对行业周期性的波动与广泛的裁员危机，你的心理防御更倾向于：", o: [{t:"视其为洗牌规律，甚至认为是个人低价抄底或跳槽的机遇。",v:4},{t:"保持危机感，提前储备现金流并随时更新求职简历。",v:3},{t:"降低消费预期，试图通过承担繁杂工作增加不可替代性。",v:2},{t:"感到严重焦虑，倾向于尽早寻找受周期影响最小的避风港。",v:1}] },
+    { d: 'D2', t: "面前有两份客观条件难以兼得的工作机会，你会如何抉择？", o: [{t:"薪资极具爆发力，但业务在验证初期，试错成本和变数大。",v:4},{t:"薪资高于均值，有一定挑战性，需承担明确考核压力。",v:3},{t:"薪资中规中矩，但平台成熟制度完善，节奏可控基本不加班。",v:2},{t:"薪资略低于预期，但具有体制内性质，几乎无失业风险。",v:1}] },
+    { d: 'D2', t: "某天公司宣布重大组织架构调整，你的岗位面临重定义。得知消息后：", o: [{t:"迅速评估新架构中的利益点与权力真空，争取更有利位置。",v:4},{t:"保持冷静观望，客观分析新汇报线对具体工作的影响。",v:3},{t:"感到疲惫，思考这种变动是否会打破现有节奏增加沟通成本。",v:2},{t:"产生强烈危机感，极度担心岗位是否会被边缘化甚至优化。",v:1}] },
+    // D3: 职场抽离度
+    { d: 'D3', t: "从深层心理认同来看，你认为“工作”在你的人生中扮演着怎样的角色？", o: [{t:"纯粹的经济契约，拿钱办事，与真实的自我和尊严完全无关。",v:4},{t:"维持生存的必要手段，会尽职尽责但保持明确的情感距离。",v:3},{t:"实现部分人生价值的途径，工作成果与成就感有一定关联。",v:2},{t:"个人尊严的核心支柱，工作干得好不好很大程度上决定了我的价值。",v:1}] },
+    { d: 'D3', t: "如果剥离掉现在的职业头衔、所在单位光环，你如何评估自己的社会价值？", o: [{t:"认为自身价值未减，独立生存的能力远高于任何平台的头衔。",v:4},{t:"认为价值主要由个人的通用技能和解决问题的实际能力构成。",v:3},{t:"承认平台赋予了一定光环，剥离后社会评价会有所折损。",v:2},{t:"感到明显的失落与空虚，认为失去了证明自己的重要依据。",v:1}] },
+    { d: 'D3', t: "面对职场中普遍存在的“委屈”或背锅，你的认知倾向是：", o: [{t:"视其为赚取工资的必要代价之一，用纯粹的利益得失来消化。",v:4},{t:"试图在规则允许范围内进行交涉，理性维护自身权益。",v:3},{t:"容易将其变成长期的情绪内耗，但表面上仍保持隐忍配合。",v:2},{t:"视其为对个人尊严的直接否定，难以释怀甚至气得睡不着觉。",v:1}] },
+    { d: 'D3', t: "你主导的方案在跨部门会议上遭到了上级严厉的公开否定。会后你的状态：", o: [{t:"迅速就事论事，将批评视为客观反馈，着手修改或推翻重来。",v:4},{t:"短暂感到挫败，但很快能通过自我调节恢复正常工作状态。",v:3},{t:"情绪受到显著干扰，需要较长时间平复才能重新集中注意力。",v:2},{t:"陷入深度的自我怀疑，反复回味被批评的尴尬细节，感到难堪。",v:1}] },
+    { d: 'D3', t: "在无关利益的私人社交场合，当不太熟的人问起“你平时做什么”时：", o: [{t:"用兴趣爱好带过，我不喜欢在下班后还顶着公司的身份。",v:4},{t:"客观陈述岗位名称，若对方有兴趣再做简单的解释。",v:3},{t:"较为详细地介绍具体职责，潜意识中带有一点分享的自豪感。",v:2},{t:"如果觉得单位名气不够大或职位不够体面，会有些局促并转移话题。",v:1}] },
+    // D4: 社交边界感
+    { d: 'D4', t: "在你理想的居住环境中，你期望与邻里社区保持怎样的互动关系？", o: [{t:"互不打扰，我喜欢关上门谁也不认识谁的清净感。",v:4},{t:"保持礼貌的点头之交，维持边界，绝对不涉及私生活。",v:3},{t:"具有一定的社区氛围，偶尔能互帮互助，但不过度介入。",v:2},{t:"期待紧密熟络的邻里关系，经常串门，日常能有人互相照应。",v:1}] },
+    { d: 'D4', t: "对于中国社会传统的“人情往来”与“互欠人情”逻辑，你的认知是：", o: [{t:"比较排斥，我认为能花钱解决的事，就绝对不要去欠人情。",v:4},{t:"尽量避免，认为人情债最难还，只在关键时刻当做备用手段。",v:3},{t:"视其为社会运转的润滑剂，虽然繁琐，但能理性参与其中。",v:2},{t:"比较认同且能适应，认为人和人就是要互相麻烦，这才是人脉。",v:1}] },
+    { d: 'D4', t: "关于“工作圈”与“私人生活圈”的重合度，你的接受底线是：", o: [{t:"必须严格隔离，下班后尽量不和同事有非必要的私人接触。",v:4},{t:"维持界限，可以有少量聚餐，但私人情绪和家庭生活绝对保密。",v:3},{t:"顺其自然，完全不排斥把合得来的同事发展为生活中的好朋友。",v:2},{t:"习惯两者的融合，觉得工作和生活分得太清反而没必要。",v:1}] },
+    { d: 'D4', t: "远房亲戚来你所在城市办事，希望借住几天。客观条件允许下你的反应：", o: [{t:"感到私人空间被挤占，宁愿自掏腰包给他们订酒店来婉拒借住。",v:4},{t:"感到为难，会以生活习惯不同或工作太忙为由委婉建议住外面。",v:3},{t:"觉得有些麻烦，但出于亲情考虑，还是会热情接待并协调作息。",v:2},{t:"感到高兴，认为亲戚间本就该互相照应，自然地安顿在家里。",v:1}] },
+    { d: 'D4', t: "当需要寻找重要生活服务（房屋装修、大病求医等）时，你的首选路径：", o: [{t:"查阅公开评价、对比数据，主要依赖正规商业合同与法律保障。",v:4},{t:"参考熟人推荐，但最终仍会走公开透明的契约流程。",v:3},{t:"倾向找朋友介绍的“靠谱渠道”，在规矩之外增加一层信任担保。",v:2},{t:"第一时间去找懂行的亲戚或朋友，深信找熟人办事才不会吃亏。",v:1}] },
+    // D5: 回报耐心值
+    { d: 'D5', t: "评估职业发展的投入回报时，你最希望在多长时间内看到明显的收益？", o: [{t:"1-2年内。如果薪资或职级没有明显提升，我就果断准备跳槽。",v:4},{t:"3-5年内。愿意在一个坑位深耕，但中短期必须看到阶段性成果。",v:3},{t:"5-10年。我有耐心，愿意花时间去熬资历、积累行业壁垒。",v:2},{t:"终身视角。不在乎眼前的起伏，我只看重退休后的福利和绝对安稳。",v:1}] },
+    { d: 'D5', t: "你如何看待职场中“论资排辈”与“熬工龄”的现象？", o: [{t:"极度反感，我认为升职加薪就应该纯粹按照当下的能力和业绩来排。",v:4},{t:"认为资历有一定参考价值，但核心机会还是该给能打仗的年轻人。",v:3},{t:"认为存在即合理，资历代表了经验的沉淀和对公司长期的忠诚。",v:2},{t:"比较认同，我觉得按照工龄稳步上升是对普通人最友好的制度。",v:1}] },
+    { d: 'D5', t: "在你看来，以下哪种财务状态最能缓解你的生存焦虑？", o: [{t:"账户里躺着足以应对随时失业的充足现金，或者很容易变现的资产。",v:4},{t:"个人收入一直保持着远超同龄人的增长速度。",v:3},{t:"拥有一份受经济大环境影响较小、能持续平稳发放的固定工资。",v:2},{t:"拥有体制赋予的隐形福利（如教育医疗资源）以及稳当的养老托底。",v:1}] },
+    { d: 'D5', t: "领导私下谈话表示今年名额有限，希望你“再等两年，下次优先你”。你：", o: [{t:"表面答应，当晚立刻更新简历准备走人，绝不为大饼浪费时间。",v:4},{t:"给公司几个月观察期，若得不到其他实质性补偿（加薪）就找后路。",v:3},{t:"感到失落，但如果觉得公司还行，会选择隐忍并继续好好干。",v:2},{t:"平静接受，认为大组织里排队是正常现象，就当攒了个人情。",v:1}] },
+    { d: 'D5', t: "如果必须二选一：方案一是发给你相当于两年工资的现金；方案二是承诺满15年后给你极佳的终身退休福利。你会选择：", o: [{t:"倾向立刻拿现金，我相信钱在自己手里能创造更大的价值。",v:4},{t:"倾向拿现金，觉得15年的变数太大了，落袋为安最踏实。",v:3},{t:"倾向终身福利，觉得这能省去规划未来的焦虑，心理上很安稳。",v:2},{t:"绝对选终身福利，我认为这种一辈子兜底的安全感是给多少钱都不换的。",v:1}] },
+    // D6: 职场消耗源
+    { d: 'D6', t: "每一套职场体系都会让人疲惫。从底线出发，你更无法忍受：", o: [{t:"重度依赖人情世故、站队表态和论资排辈，干活前得先学会做人。",v:4},{t:"评价标准非常模糊，升职加薪全凭领导个人的喜好和亲疏远近。",v:3},{t:"死板的打卡制度和流程，人就像流水线上的螺丝钉一样毫无灵活性。",v:2},{t:"残酷的末位淘汰制，每天被各种数据和指标死死盯着，压力拉满。",v:1}] },
+    { d: 'D6', t: "你认为理想的职场评价体系应当是怎样的？", o: [{t:"绝对透明和量化，哪怕标准很冷酷，只要大家都按数据说话就行。",v:4},{t:"以客观数据为主，再加上一定程度的团队协作等软能力评估。",v:3},{t:"综合考量个人的工作表现、忠诚度以及和大家相处得融不融洽。",v:2},{t:"更加看重工作态度和踏实程度，觉得懂规矩、听安排比单纯能力强更重要。",v:1}] },
+    { d: 'D6', t: "对于职场中隐形的“潜规则”（如领导没走不能下班、酒桌礼仪），你的态度：", o: [{t:"极其反感且不敏感，我只认合同里写明的工作，其余一概不理。",v:4},{t:"知道有这些规矩但不愿意迎合，干完自己该干的就拉开距离。",v:3},{t:"觉得这是职场的客观现实，愿意花一定精力去适应和顺应。",v:2},{t:"觉得很正常，我也很擅长在这些不成文的规矩里帮自己争取利益。",v:1}] },
+    { d: 'D6', t: "部门重组二选一：X部门考核极严，不达标就扣钱，但下班后绝对清净；Y部门考核宽松，不查考勤，但周末常要陪领导应酬。你选：", o: [{t:"选X。我宁可承受巨大的业绩压力，也绝对不占用私人时间去逢场作戏。",v:4},{t:"倾向X。虽然每天盯着数据很累，但简单透明的管理没那么心累。",v:3},{t:"倾向Y。相比于像机器一样被考核指标逼着，我宁愿花心思去搞搞人际关系。",v:2},{t:"选Y。我很擅长通过应酬和跟领导处关系来建立优势，很讨厌冷冰冰的打分。",v:1}] },
+    { d: 'D6', t: "如果公司要求每周五提交极其详尽的数据复盘和下周规划文档，你的感受：", o: [{t:"很正常，这是大公司科学管理的必要工具，我能专业地完成。",v:4},{t:"觉得有点形式主义，但也还能接受，就按要求写完交差。",v:3},{t:"感到相当烦躁，觉得这种过度细致的汇报纯粹是在浪费真正干活的时间。",v:2},{t:"产生强烈的抵触情绪，觉得这种严密的监视是对员工极大的不信任。",v:1}] }
+];
+
+/* ---------------- 状态与主逻辑 ---------------- */
+let currentQList = [...coreQuestions];
+let currentIdx = 0;
+let userAnswers = []; 
+let rawScores = {};
+let isNavigating = false; 
+
+function initScores() {
+    userAnswers = [];
+    rawScores = {};
+    for(let key in DIMS) rawScores[key] = {s: 0, max: 0};
+}
+
+function nextPage(from, to) {
+    document.getElementById(from).style.display = 'none';
+    document.getElementById(to).style.display = 'block';
+}
+
+// 新增：Fisher-Yates 洗牌算法，用于打乱数组
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+// 【修改起始行】
+// 新增：Fisher-Yates 洗牌算法，用于随机打乱数组元素
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+function initTest() {
+    initScores();
+    currentQList.forEach(q => { 
+        rawScores[q.d].max += 4; 
+        // 核心优化：打乱每道题内部的选项顺序。
+        // 选项分值(v)会跟着文本(t)一起被打乱，彻底防住用户摸清计分规律。
+        shuffleArray(q.o); 
+    });
+
+    currentIdx = 0;
+    nextPage('page-intro', 'page-test');
+    document.getElementById('page-test').style.display = 'flex';
+    renderQuestion();
+}
+// 【修改结束行】
+
+function renderQuestion() {
+    const q = currentQList[currentIdx];
+    document.getElementById('progress-text').innerText = `${currentIdx + 1} / ${currentQList.length}`;
+    document.getElementById('progress-fill').style.width = `${((currentIdx)/currentQList.length)*100}%`;
+
+    const btnPrev = document.getElementById('btn-prev');
+    if (currentIdx === 0) btnPrev.classList.add('hidden');
+    else btnPrev.classList.remove('hidden');
+
+    const wrapper = document.getElementById('question-wrapper');
+    wrapper.classList.remove('slide-up');
+    void wrapper.offsetWidth; 
+    wrapper.classList.add('slide-up');
+
+    document.getElementById('question-text').innerText = `${currentIdx + 1}. ${q.t}`;
+    const optsBox = document.getElementById('options-box');
+    optsBox.innerHTML = '';
+    
+    const prevSelectedVal = userAnswers[currentIdx] ? userAnswers[currentIdx].val : null;
+    const labels = ['A', 'B', 'C', 'D'];
+    
+    q.o.forEach((opt, idx) => {
+        const btn = document.createElement('div');
+        btn.className = 'option-btn';
+        if (prevSelectedVal === opt.v) btn.classList.add('selected'); 
+        btn.innerText = `${labels[idx]}. ${opt.t}`;
+        
+        btn.onclick = (e) => {
+            if (isNavigating) return;
+            isNavigating = true;
+            Array.from(optsBox.children).forEach(c => c.classList.remove('selected'));
+            e.target.classList.add('selected');
+            setTimeout(() => {
+                handleAnswer(q.d, opt.v);
+                isNavigating = false;
+            }, 180);
+        };
+        optsBox.appendChild(btn);
+    });
+}
+
+function handleAnswer(dim, val) {
+    userAnswers[currentIdx] = { dim, val }; 
+    if (currentIdx < currentQList.length - 1) {
+        currentIdx++;
+        renderQuestion();
+    } else {
+        finishTest();
+    }
+}
+
+// 【开始替换部分二】
+function finishTest() {
+    document.getElementById('page-test').style.display = 'none';
+    document.getElementById('page-loading').style.display = 'flex';
+
+    // 汇总得分并转为百分制指数
+    for(let key in DIMS) rawScores[key].s = 0;
+    userAnswers.forEach(ans => { rawScores[ans.dim].s += ans.val; });
+
+    let score100 = {};
+    for(let key in rawScores) {
+        let rs = rawScores[key].s;
+        let indexVal = Math.round(((rs - 5) / 15) * 100);
+        score100[key] = Math.max(0, Math.min(100, indexVal));
+    }
+
+    // 决策树判定生态位 
+    let D1=score100.D1, D2=score100.D2, D3=score100.D3, D4=score100.D4, D5=score100.D5, D6=score100.D6;
+    let typeData = {};
+
+    if ((D2 >= 70 && D3 <= 30) || (D4 >= 70 && D1 <= 30) || (D6 <= 30 && D2 <= 30)) {
+        typeData = { t: 'E', name: '生态错位者', sub: 'The Misaligned' };
+    } else if (D3 >= 55 && D4 >= 50 && D6 <= 50) {
+        typeData = { t: 'D', name: '旷野游民', sub: 'The Wilderness Nomad' };
+    } else if (D1 >= 50 && D2 >= 50 && D6 >= 50) {
+        typeData = { t: 'A', name: '一线淘金客', sub: 'The Big Tech Mercenary' };
+    } else if (D1 <= 50 && D2 <= 50 && D4 <= 50) {
+        typeData = { t: 'B', name: '县城建制派', sub: 'The Local Elite' };
+    } else {
+        typeData = { t: 'C', name: '平衡中产', sub: 'The Balanced Middle' };
+    }
+
+    // 核心算法修正：完全去除随机数，根据用户得分强度进行映射
+    let suitabilityRate = 50;
+    
+    if (typeData.t === 'A') {
+        let strength = (D1 + D2 + D6 - 150) / 150; 
+        suitabilityRate = 80 + (Math.max(0, strength) * 19); 
+    } else if (typeData.t === 'B') {
+        let strength = (D1 + D2 + D6) / 300; 
+        suitabilityRate = 10 + (strength * 29); 
+    } else if (typeData.t === 'C') {
+        let strength = (D2 + D6) / 200;
+        suitabilityRate = 40 + (strength * 39); 
+    } else if (typeData.t === 'D') {
+        let strength = D6 / 100;  
+        suitabilityRate = 5 + (strength * 20);  
+    } else if (typeData.t === 'E') {
+        let strength = (D1 + D2 + D6) / 300; 
+        suitabilityRate = 15 + (strength * 20); 
+    }
+    
+    suitabilityRate = Math.max(0, Math.min(100, Math.round(suitabilityRate)));
+
+    // 延时加载UI展示区
+    setTimeout(() => {
+        document.getElementById('page-loading').style.display = 'none';
+        document.getElementById('page-result').style.display = 'block';
+        
+        document.getElementById('res-badge').innerText = ` Type ${typeData.t} `;
+        document.getElementById('res-title').innerText = typeData.name;
+        document.getElementById('res-subtitle').innerText = typeData.sub;
+        document.getElementById('tier-marker-label').innerText = typeData.name;
+        
+        animateScore(suitabilityRate);
+        drawRadar(score100);
+        renderSummaryUI(typeData.t);
+        document.getElementById('dynamic-report-content').innerHTML = buildDynamicReport(typeData.t, score100);
+    }, 2500);
+}
+// 【结束替换部分二】
+
+// 动态分数暴涨效果
+function animateScore(targetScore) {
+    const scoreEl = document.getElementById('final-total-score');
+    const percentSignEl = document.getElementById('score-percent-sign');
+    const scoreContainer = document.getElementById('score-display-container');
+
+    const countMainStep = () => {
+        let current = parseInt(scoreEl.innerText) || 0;
+        let diff = targetScore - current;
+        let delay = 25; 
+        
+        if (diff > 15) {
+            current += 1; 
+        } else if (diff > 0) {
+            current += 1;
+            delay = 25 + (15 - diff) * 25; 
+        }
+        
+        let currentColor = '#0984e3'; 
+        if (current < 40) currentColor = '#e17055'; 
+        else if (current < 60) currentColor = '#fdcb6e'; 
+
+        let glowColor = currentColor + '40'; 
+
+        scoreEl.innerText = current;
+        scoreEl.style.color = currentColor;
+        percentSignEl.style.color = currentColor;
+        scoreContainer.style.textShadow = `0 8px 25px ${glowColor}`;
+
+        document.getElementById('tier-fill-bar').style.width = current + '%';
+        document.getElementById('tier-marker').style.left = current + '%';
+        
+        if (current < targetScore) {
+            setTimeout(countMainStep, delay);
+        } else {
+            scoreContainer.classList.add('score-burst');
+        }
+    };
+    setTimeout(countMainStep, 150);
+}
+
+function renderSummaryUI(typeStr) {
+    const kws = {
+        'A': ['认同规则', '独立生存', '高额变现', '效率至上'],
+        'B': ['人情社会', '极高容错', '追求安稳', '稳定压倒一切'],
+        'C': ['边界感', '生活至上', '拒绝内卷', '清醒打工人'],
+        'D': ['极致自由', '拒绝规训', '一个人战斗', '风险自担'],
+        'E': ['生态排异', '内心拉扯', '环境错位', '高危预警']
+    };
+    
+    const evals = {
+        'A': '<strong>微观诊断：您是高度契合现代科层制与市场化交换的高效理性个体。</strong><br>您能够敏锐地将大型组织的运行规则转化为个人的资本积累工具，将制度压力视为获取资源溢价的合理代价。',
+        'B': '<strong>微观诊断：您具有敏锐的防御性生存智慧，深刻理解传统地缘与人际网络的托底价值。</strong><br>您看透了现代企业高薪背后的不稳定性与风险转移机制，转而寻求结构性的长远安全感。',
+        'C': '<strong>微观诊断：您是清醒的边界捍卫者，拒绝将个体尊严完全让渡于组织目标。</strong><br>您致力于在世俗成就与个人生活质量之间建立严格的防火墙，以此抵御工作对个体生命的过度侵占。',
+        'D': '<strong>微观诊断：您的内在精神架构极其独立，具有强烈的反规训倾向。</strong><br>庞大组织的复杂协作与妥协机制会严重磨损您的生命力，剥离组织庇护的独立创造才是您的自然状态。',
+        'E': '<strong>微观诊断：您的内在价值诉求与当前所处的外部环境存在严重的结构性错位。</strong><br>您正在用一套并不兼容的心理防御机制去应对当下的生存压力，这正在引发持续且剧烈的自我消耗。'
+    };
+
+    let kwHtml = '';
+    kws[typeStr].forEach(k => { kwHtml += `<div class="kw-tag">${k}</div>`; });
+    document.getElementById('res-keywords').innerHTML = kwHtml;
+    document.getElementById('res-short-eval').innerHTML = evals[typeStr];
+}
+
+// 获取各维度的平实社会学解读
+function getDimAnalysis(dimKey, score, title) {
+    let desc = "";
+    if (dimKey === 'D1') {
+        if (score >= 50) desc = "【技能依赖与市场契约】您倾向于将高度专业化的技术与知识视为生存的核心屏障。在您的认知体系中，社会关系是脆弱且不确定的，而可以在公开市场中自由流通的技能才是抵御风险的唯一硬通货。这种观念使您极度认同市场化的契约精神，您随时准备剥离当前的组织身份，带着自身的技能资本进入下一个交易环节，这赋予了您极高的流动性。";
+        else desc = "【关系本位与地缘网络】您深刻理解中国传统社会中“差序格局”的运作逻辑。相比于冷冰冰的、随时可能因为技术迭代而贬值的专业技能，您更相信基于长期互惠、情感羁绊而建立起来的熟人网络。您倾向于在特定的地理或行业范围内，通过长期的信用投资来编织一张足以在危机时刻提供托底保护的安全网。";
+    } else if (dimKey === 'D2') {
+        if (score >= 50) desc = "【高风险偏好与流动性诉求】您对处于停滞状态的“安全感”抱有深刻的警惕。在您的行为模型中，安稳往往意味着阶层滑落的风险。您具有较高的风险承受能力，愿意将个人的时间、精力甚至健康作为筹码，投入到具有高度不确定性的组织或行业中，以此博取跨越式的资本积累或社会地位的跃升。";
+        else desc = "【低风险偏好与结构性防御】您的生存策略呈现出强烈的防御性特征。您对宏观环境的周期性波动具有本能的恐惧，因此在资源配置上，您绝对优先考虑抗风险能力与收益的确定性。您愿意主动放弃潜在的高额溢价，以换取免于被市场残酷淘汰的免于恐惧的自由。体制或具有垄断性质的稳定平台是您最渴望的避风港。";
+    } else if (dimKey === 'D3') {
+        if (score >= 50) desc = "【工具理性与情感剥离】您在心理层面上成功地构建了一道防火墙，将“作为劳动者的自我”与“作为个体的真实自我”进行了严格的物理与心理隔离。您以一种高度的工具理性来看待工作，将其纯粹化为获取经济资源的手段。因此，组织内部的批评、倾轧或边缘化，很难穿透这层防御去伤害您核心的自我价值认同。";
+        else desc = "【身份融合与价值绑定】您的自我概念与您的职业身份、组织地位存在深度的绑定。您倾向于通过工作成果和外界的职场评价来确认自身的存在价值。这种特质虽然能驱使您在工作中表现出极高的责任感与使命感，但也使得您的情绪状态极易受到组织环境波动的牵制，一旦遭遇职场挫折，很容易演变为深度的个人存在感危机。";
+    } else if (dimKey === 'D4') {
+        if (score >= 50) desc = "【原子化生存与隐私壁垒】您高度适应现代都市的原子化生活形态。您对个人隐私和物理边界有着极为严苛的要求，主张通过规范的商业服务来解决生活需求，极力避免陷入传统社会中错综复杂的“人情债务”。这种边界感是您维持内心秩序、避免个体精力被无序的人际交往过度消耗的关键策略。";
+        else desc = "【社群融合与关系渗透】您并不认为保持绝对的个体孤立是健康的生存状态。您乐于在工作与生活的交界地带建立温和的社交连接，并且能够自如地处理传统社会中的人情往来。在您看来，人与人之间适度的边界模糊和“互相麻烦”，不仅不是负担，反而是一种确认社会归属感和建立深层信任的必要仪式。";
+    } else if (dimKey === 'D5') {
+        if (score >= 50) desc = "【高时间贴现率与即时回报】您对时间的价值极其敏感，对未来的不确定性缺乏耐心。在您的价值评估体系中，远期的承诺（如未来的晋升、长期的福利）会被赋予极大的折扣。您要求个人的投入必须在极短的周期内（通常为一至两年）转化为实质性的经济回报或履历增值。若未能如愿，您会果断启动止损与退出机制。";
+        else desc = "【低时间贴现率与长期主义】您具备一种能够忍受漫长平庸期的心理韧性。您的视野超越了短期的物质得失，能够以数十年甚至一生的维度来规划自身的生存策略。为了获取终极的确定性（如完善的养老保障体系、不可动摇的社会地位），您愿意在当下默默承受枯燥的工作内容，遵循论资排辈的古老法则。";
+    } else if (dimKey === 'D6') {
+        if (score >= 50) desc = "【科层制适应与量化耐受】您展现出了对现代大型企业高度理性和量化管理模式的极强适应力。您并不排斥严苛的绩效指标和流程管控，因为这种透明的、去人格化的规则为您提供了一种可预期的控制感。相反，您极度反感那些依赖于主观臆断、人际亲疏和隐性权力的传统管理模式。";
+        else desc = "【差序格局适应与模糊处理】您对现代企业中将人异化为数据指标的冷酷管理方式感到本能的排斥。相反，您在处理那些缺乏成文规定、高度依赖人际博弈和隐性规则的复杂情境时，显得游刃有余。您深谙人性的幽微之处，擅长通过非正式的沟通、情感投资和资源置换，在僵化的制度中为自己开拓出生存空间。";
+    }
+
+    return `
+        <li>
+            <div class="dim-header">
+                <span class="dim-name">${title}</span>
+                <span class="dim-score">指数：${score}%</span>
+            </div>
+            <p class="dim-desc">${desc}</p>
+        </li>
+    `;
+}
+
+function toggleReport() {
+    const container = document.getElementById('full-report-container');
+    const btn = document.getElementById('btn-unlock');
+    if(container.style.display === 'block') {
+        container.style.display = 'none';
+        btn.innerHTML = '<span>🔓 解锁千字深度定制报告</span>';
+    } else {
+        container.style.display = 'block';
+        btn.innerHTML = '<span>收起报告</span>';
+        setTimeout(()=> {
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    }
+}
+
+/* ================= 动态千字报告生成引擎 ================= */
+function buildDynamicReport(typeStr, s100) {
+
+    // 平实沉稳、透彻无黑话的学术级解析 (已完整填充之前的所有深度文案)
+    const resultTexts = {
+        'A': {
+            core: `<p class="report-p">在高速运转的现代都市丛林中，您展现出了令人惊叹的适应力。您是一位极其高效、理性的生存者。对您而言，庞大的企业机器并不是压榨个人的怪兽，而是一个可以利用的资本积累平台；严苛的制度与压力，不过是您获取高额资源溢价的合理对价。在极其复杂的职场生态中，您始终保持着极高的流动性，以及极其清醒的自我边界。</p>
+                   <p class="report-p">在您的生存哲学中，一线城市从来不是一个温情脉脉的归宿，而是一个庞大、高效且冷酷的资源交易市场。您非常透彻地理解了大型现代企业的本质：它们通过支付远超社会平均水平的薪酬，来集中购买员工的优质时间、专业技能以及承受高压的耐受力。面对这种等价交换，您摒弃了大多数人容易陷入的道德批判或情绪内耗。</p>
+                   <p class="report-p">您极其看重变现的速度和效率，缺乏陪着公司慢慢熬资历的耐心，因为您明白自己的青春和脑力是有极高时间成本的。这种极致的理性，也体现在您对管理方式的偏好上。在情境测试中，当面临部门重组的二选一难题时，您下意识地倾向于那个考核极度严苛、完全靠数据说话，但下班后绝对清净的部门。这生动地揭示了您的底层逻辑：您宁愿在透明、冰冷的规则下承受直接的业绩剥削，也不愿卷入模糊的权力依附与复杂的情绪劳动中。在您看来，冰冷的数据是客观的、可以通过努力去掌控的，而难以捉摸的人心与酒桌上的逢场作戏，只会造成巨大的精力浪费。</p>
+                   <p class="report-p">在心理防御机制上，您展现出了一种近乎完美的隔离能力。社会学中有一个概念叫做“自我客体化”，您正是把自己当成了一家独立运作的一人公司。上班时，您交出那个高度专业、情绪稳定、抗压能力极强的职业化分身，去市场上换取最高溢价。这种切割带来的最大好处是极强的抗挫折能力。外界的批评、项目的失败，打击的仅仅是您的那个职业分身，根本无法穿透您内心的防火墙，去击碎您作为独立个人的核心尊严。</p>
+                   <p class="report-p">这种清醒的边界感同样延伸到了您的日常生活中。面对生活中极其繁琐的私人事务办理，您本能地抗拒去寻找熟人通融，而是选择死磕正规流程，或者干脆花钱购买商业代办服务。您极其警惕传统社会中那种人情债。您深知，在这个世界上，凡是能用金钱和契约买断的关系，才是最简单、最安全的。一旦动用了人情，往往意味着未来要出让更多的个人隐私和不可控的时间去偿还。用专业换取金钱，再用金钱购买服务以隔绝无效的社交，这是您维持个体独立与内心秩序的最有效闭环。</p>`,
+            risk: `<p class="report-p">然而，这种看似无坚不摧的绝对理性生存模式，如果放在十年甚至二十年的长周期里去审视，潜藏着两个极为隐蔽且致命的结构性危机。</p>
+                   <p class="report-p">首当其冲的是生理与经济层面的不可持续性。您目前的全部高薪与职场议价权，本质上都建立在透支年轻时最旺盛的精力之上。您将自己最精华的生命力作为筹码放上了牌桌。但人体不是一台可以无限折旧的机器，随着生理年龄的不可逆增长，或者一旦宏观经济进入下行周期、企业不再愿意为拼搏支付高额溢价时，这种单纯依靠出卖高密度时间来维持高收入的模式，将瞬间遭遇巨大的断裂。这种对风险的偏好促使您不断攀登，但也意味着一旦您的高速列车因为体能或外部大环境被迫减速，您可能会面临突如其来的市场价值跌落，且缺乏缓冲的安全垫。</p>
+                   <p class="report-p">更深层次的危险，在于存在主义层面的情感枯竭。当您日复一日、年复一年地习惯了运用投入产出比、效率最大化来衡量职场万物时，这种工具式的思维定势会不可避免地向您的私人生活蔓延。您可能会在潜意识中开始用“是否有用”、“是否麻烦”来评估一段友谊、一场恋爱甚至与家人的关系。久而久之，您可能会逐渐丧失建立纯粹亲密关系的能力。真实的生活往往是充满瑕疵、极其低效且常常需要互相麻烦的。当您把生活也处理得像工作一样干净利落、互不相欠时，您也同时切断了与这个世界最温热的连接。这种深度的情感剥离，会在某一个项目突然结束的深夜，或者职场生涯被迫按下的暂停键时，带来难以名状的空虚感。您可能会突然发现，除了银行卡里的数字和一份光鲜的履历，自己在这个世界上竟然没有一个可以毫无保留地展露软弱的角落。</p>`,
+            advice: `<p class="report-p">为了避免在商业机器停止运转时被无情抛弃，您必须在自己仍处于精力和收入巅峰状态的当下，主动且清醒地构建属于自己的护城河与退出机制。</p>
+                     <p class="report-p">首先，您必须强制完成从出卖时间向积累资本的跨越。请立刻停止任何试图通过高额消费来补偿高压工作的行为。消费主义带来的快感是极其短暂的虚假奖赏。您需要像经营企业的现金流一样，将您用健康和时间换来的超额薪酬，迅速、冷酷地转化为能够产生被动收益的硬资产。您必须为自己确立一个明确的财务安全基线，建立一个即使您明天彻底停止高强度劳动，依然能维持您体面生活的防御储备。只有实实在在的资本积累，才能真正将您从不断出卖时间的无尽循环中解救出来，赋予您在未来面对任何不合理要求时，随时掀桌子走人的底气。</p>
+                     <p class="report-p">其次，您需要刻意地去重建那些毫无功利目的的生命体验。这是对您逐渐被效率异化的精神世界进行的紧急抢救。在高度紧张、分秒必争的商业计算之外，您必须为自己强制保留一块完全无用的自留地。去涉猎一门绝对无法变现的人文学科，去进行一次没有明确目的地的漫游，去维系几段即使十年不联系也绝不会影响您事业的纯粹友谊。请允许自己在某些时刻变得低效，允许自己去感受那些不能用金钱衡量的微小事物。这绝不是在浪费时间，而是在为您日渐干涸的情感水库重新蓄水。您需要在那个随时准备战斗的冷酷职业人身份之外，重新养育一个有血有肉、有脆弱也有渴望的真实的自己。只有这样，当未来的某一天，您必须卸下社会赋予您的所有光环与头衔时，您才依然能感受到自己是一个鲜活存在的人，而不是一件被废弃的工具。</p>`
+        },
+        'B': {
+            core: `<p class="report-p">在高速运转、强调优胜劣汰的现代都市文明面前，您保持着一种极其清醒的疏离感，并最终选择向传统的、基于地缘和血缘的社会结构回归。您洞悉了现代商业社会表面繁华背后的残酷本质：高昂的生活成本、随时面临的裁员风险，以及人与人之间那种基于冰冷契约的原子化孤立状态。在您看来，这些漂浮在空中的高额薪水，根本无法为您提供任何深层次的安全感。相反，您是一位深谙中国传统社会运作逻辑的智者，您知道真正的社会保障并非来自于冷漠的法律条文或公司的虚假承诺，而是来自于错综复杂、相互交织的社会关系网络与结构性的体制庇护。</p>
+                   <p class="report-p">在您的价值排序中，稳定与确定性拥有压倒一切的地位。现代社会鼓励冒险，鼓励用高风险去博取高收益，但您的底层生存逻辑是防守反击。您对宏观经济的周期性波动有着本能的警惕，因此您愿意主动放弃那些充满变数、可能带来短暂阶层跃升的机会，转而寻求体制内、国企或是家乡那种具有高度防御性的生态位。我们在情境测试中清晰地观察到了您的这种防御性偏好。在面对短期巨额现金与终身退休福利的二选一难题时，您依然选择了后者。在您看来，眼前的巨款虽然诱人，但它会被通货膨胀稀释，会被突发疾病消耗，更会被投资失败吞噬。而一个系统承诺的终身兜底，才能真正平息您对未来不确定性的深层恐惧。</p>
+                   <p class="report-p">在解决现实问题时，您极度依赖且擅长运用传统社会中的“差序格局”。与那种遇到问题就花钱买服务、走正规流程的契约思维不同，您的第一反应永远是向这层关系网求助。在您看来，规章制度是死板的，而人是活的。人情网络不仅能帮您绕开繁文缛节，更能在危机时刻为您提供超出法律契约之外的隐性担保。</p>
+                   <p class="report-p">您并不认为处理亲戚间的琐事、参与地方性的人情往来是一种负担。例如，面对远房亲戚来所在城市办事希望借住的请求，即使客观上有些麻烦，您依然会出于亲情考虑热情接待并协调作息。因为您深刻地理解，在传统的熟人社会中，人与人之间适度的边界模糊和互相麻烦，恰恰是建立信任、编织安全网的必经之路。今天您让渡了部分隐私和便利去承接别人的人情，明天当您遭遇人生重大变故时，这张网就会牢牢地将您托住，不至于让您跌入谷底。</p>`,
+            risk: `<p class="report-p">然而，这种高度依赖特定地理空间与人际网络、追求绝对平稳的生存策略，同样面临着系统性的脆弱，并且这些危险往往是以温水煮青蛙的方式悄然降临的。</p>
+                   <p class="report-p">首先是核心竞争力的不可逆退化。在缺乏外部严酷生存压力的封闭系统中，您的工作往往具有高度的重复性和较低的替代门槛。您可能会逐渐丧失应对复杂市场变化的核心技能。一旦宏观环境发生剧烈变动，比如地方财政收紧、体制改革或者所在行业的垄断地位被打破，导致您所依附的系统无法继续提供绝对的庇护时，您将很难在公开的、高度竞争的市场中重新找到同等生态位的立足之地。因为您多年来积累的最大财富——特定区域内的人际关系和对特定内部流程的熟悉程度——一旦离开那个特定的环境，其价值将瞬间归零。</p>
+                   <p class="report-p">其次是严重的个人边界丧失与精神上的信息茧房。在熟人社会中，个人的隐私空间受到极大的压缩。长辈的期待、宗族的面子、外界的非议，常常会形成巨大的无形压力，迫使您在婚姻、生育、消费等重大个人决策上做出违背本心的妥协。长期处于这种高度同质化、强关联的环境中，您的认知边界会被局限在极小的本地圈子内。您可能会过度关注谁家升职了、谁家托关系办成事了，从而不可逆地丧失对广阔世界技术迭代、产业革命以及新兴思想的敏锐感知力，最终导致精神层面的日益封闭与僵化。</p>`,
+            advice: `<p class="report-p">在享受体制和熟人社会带来确定性的同时，您必须有意识地在这个相对封闭的安全堡垒中，为自己开启几扇透气窗，并建立底线防御。</p>
+                     <p class="report-p">首先，您需要学会在人情网络中建立适度且坚韧的心理边界。熟人社会的互相托底，并不意味着您必须无底线地响应所有的社交索取和亲情绑架。您需要学会识别哪些是真正能够沉淀为长期社会资本的有效互惠，哪些是纯粹消耗您精力且毫无实质意义的无效社交。尝试用温和但坚定的方式，婉拒那些触及您核心利益和家庭底线的不合理要求。保留出一部分完全属于自己的时间，不去应酬，不去迎合，仅仅用于个体的休养生息。</p>
+                     <p class="report-p">其次，强烈建议您维持对外部客观世界的持续观察与技能储备。请不要让您的信息来源仅仅局限于本地的饭局、亲友的群聊或单位的内部通报。您应当刻意保持对宏观经济走势、前沿技术（如人工智能对传统行业的冲击）或广阔世界文化发展的关注。去主动结交几位具有不同行业背景、在大城市打拼且不受本地人情网络束缚的朋友。这不仅是为了保持您的思维活跃度，更重要的是，您需要在一项硬核技能上保持精进。哪怕这项技能在目前的稳定工作中毫无用武之地，您也要把它当作救生圈一样带在身边。为您的人生保留一种“在系统失灵时，依然能够依靠个人能力在外部世界生存”的备用方案，这是防范时代系统性风险突然降临的最后一道防线。</p>`
+        },
+        'C': {
+            core: `<p class="report-p">在现代社会的生存图谱中，您处于一个极其特殊且需要高度智慧的生态位。您既没有被商业社会里“只要拼命就能实现阶层跨越”的宏大叙事所洗脑，也没有选择退回到缺乏隐私、凡事都需要托关系的传统县城熟人社会。您看透了一线大厂试图通过压榨员工全部时间来换取增长的不可持续性，也本能地抗拒那种为了微薄的安稳而让渡个人边界的生存方式。</p>
+                   <p class="report-p">您试图在世俗的企图心与个人的生命质量之间，极其精准地测算并划定一条神圣不可侵犯的底线。在这条底线之上，您愿意付出符合职业伦理的专业劳动；而一旦越过这条底线，试图侵占您的休息时间或个人尊严，您将展现出不妥协的抵抗态度。您不奢求通过搏命去实现一夜暴富，但会竭尽全力去捍卫自己内心的秩序、从容的步调，以及绝对不被外界过度打扰的权利。</p>
+                   <p class="report-p">您之所以能够在喧嚣的职场中保持清醒，核心在于您对“工作”这一概念有着极其准确且冷峻的社会学定位。在您的认知体系中，工作绝不是实现人生终极价值的唯一途径，更不是需要您奉献全部忠诚的信仰。工作仅仅是一份需要您以专业态度去履行的商业合同。您出售八小时的智力与劳动力，换取支撑真实生活的经济资源，这笔交易在您打卡下班的那一刻便宣告终止。我们在情境测试中清晰地观察到了您这种严格的隔离机制，您下意识地避免和同事产生非必要的私人接触，更不会将个人的情绪和家庭生活暴露在职场中。您建立这道社交隔离墙，是为了极其有效地阻断组织权力向您私人生活领域的渗透。下班后的时间是您绝对的私有财产，您将剩余的生命能量，精心地倾注在您的兴趣、您的伴侣以及您对世界真实的感知上。</p>
+                   <p class="report-p">因为您在物理时间上划定了严格的边界，自然而然地，您在心理层面上也建立了一套极为出色的防御机制。这种机制使您能够在地雷密布的职场人际关系中，保持一种令人羡慕的情绪稳定性。当您主导的方案在跨部门会议上遭到上级严厉的公开否定时，您的反应展现了高度的成熟。您没有像某些类型的人那样陷入深度的自我怀疑，觉得是自己无能；也没有觉得自尊心受挫。您能够迅速理智地将“这件工作没做好”和“我这个人没有价值”进行彻底的切割。这种精准的认知解绑，是您最强大的情绪防火墙。您心里很清楚，老板批评的只是您在这个商业契约中扮演的那个“员工角色”，而不是在否定您作为独立个体的本质。因此，职场上的倾轧、冷言冷语或者不公平的待遇，很难真正刺痛您的内心。您以一种近乎旁观者的姿态参与着职场的运转，极大地降低了每天上班的心累程度。</p>`,
+            risk: `<p class="report-p">然而，您必须极其清醒地认识到，您所精心维持的这种既要体面收入、又要绝对生活平衡的状态，在本质上是极其脆弱的。这种“中间态”的生存模式，高度依赖于宏观经济的持续上行与所在企业利润的宽裕。在太平盛世，这是一种性价比极高、极其优雅的选择；但当时代的车轮转向，行业进入收缩和震荡期时，这种平衡将面临极其残酷的挑战。</p>
+                   <p class="report-p">当企业面临生存危机、开始大规模裁员或优化时，残酷的职场达尔文主义便会显露无疑。在这个时候，企业最先保留的，往往是两类人：一类是掌握核心资源、能够创造不可替代价值的顶级开拓者；另一类是虽然能力平庸，但愿意无条件服从、用无尽的免费加班和绝对忠诚来换取微薄薪水的妥协者。</p>
+                   <p class="report-p">作为既不愿意牺牲全部生活去死磕业绩，又没有体制内那种绝对不裁员的铁饭碗保护的“平衡主义者”，您极易陷入不上不下的尴尬境地。由于您在主观上拒绝了深度的职场政治卷入，您在组织内部的权力网络中往往处于边缘位置，缺乏能够在关键时刻保全您的内部庇护力量。在削减成本的考量下，您这种严格按时上下班、产出中规中矩且对公司缺乏狂热依附感的员工，往往会成为首当其冲的挤出对象。一旦原有的业务架构发生变动，您很难调动足够的内部资源来保护自己的既得利益，从而面临突然的职业中断风险。</p>`,
+            advice: `<p class="report-p">要将这种脆弱的平衡转化为能够抵御时代风浪的坚实常态，您必须将目前的“消极防御”策略升级为“积极构建”策略。既然您坚定地拒绝了通过拼体力、拼时长的无底线内卷来获取安全感，那么您就必须在自身的“不可替代性”上建立起属于自己的极高城墙。</p>
+                     <p class="report-p">首先，请充分利用您因为按时下班、拒绝无效社交而保卫下来的宝贵业余时间。不要让这些时间仅仅消耗在追剧或毫无产出的休闲上。您需要极其专注地深入发展一门精深的专业技能，或者培养一种极其罕见的解决复杂问题的能力。您需要确保，目前的这份体面与生活平衡，是坚实地建立在您自身过硬的综合实力之上，让市场认识到，雇用您哪怕只有八小时，也远比雇用别人二十四小时更有价值。只有当您自身的市场价值足够强大时，您在与组织的博弈中才拥有真正的议价权。</p>
+                     <p class="report-p">其次，您必须比其他任何类型的人都更加注重个人财务的健康与资产的流动性。既然您选择了不把人生完全绑定在任何一家公司上，您就必须为自己准备充足的抗风险资金。保持克制的消费欲望，建立至少足以支撑您一到两年无收入状态的财务缓冲池。只有当您的银行账户里拥有足够的储蓄时，您那种拒绝不合理加班、捍卫个人边界的姿态，才是真正有底气的。财务上的自由度，是支撑您在这个喧嚣世界里继续做个清醒的“边界捍卫者”的最强硬的后盾。</p>`
+        },
+        'D': {
+            core: `<p class="report-p">在社会行为学的分类中，您属于一种极其罕见且具有强烈反建制色彩的独立个体。当绝大多数人都在试图攀附一个庞大的组织机器，以求获取安全感或权力杠杆时，您却本能地对任何具有层级属性、规训意味的庞大系统感到窒息。</p>
+                   <p class="report-p">对您而言，现代企业里层层叠叠的管理架构、繁复的汇报流程以及为了维系组织运转而衍生出的种种形式主义，不仅无法为您提供成长的土壤，反而像是一座压抑生命力的牢笼。您无法理解为何要将时间浪费在毫无意义的向上汇报、跨部门推诿以及迎合企业文化的表演中。您在精神上是一位真正的游牧民，拒绝被固定在任何一条标准化的社会履带上。您不仅看重物质的获取，更将对时间和空间的绝对支配权视为人生最高形态的财富，并愿意为此豪赌，承担脱离主流评价体系带来的巨大不确定性。</p>
+                   <p class="report-p">您之所以敢于走向旷野，核心支撑力在于您在精神上已经完成了彻底的断奶。您成功地将自我价值的认同，从外部权威机构的背书体系中剥离了出来。这一点在情境测试中得到了极其生动的印证。在私人社交场合，当不太熟的人询问您平时做什么时，您绝不会试图用一个响亮的公司名头或一个华丽的职位去虚张声势。您往往会用自己当下正在钻研的兴趣、正在创作的作品，或者一项纯粹的个人技能带过。这种看似随意的回答，实则揭示了一个深刻的社会学真相：您不需要任何知名企业的工牌来证明自己是个有价值的人。您认为个体的尊严来源于个人的创造力和独立思考，而不是某个组织暂时租赁给您的光环。</p>
+                   <p class="report-p">同时，您对于停滞有着一种近乎生理性的恐惧。当面对那种一眼望到头、按部就班的安稳状态时，多数人会感到安心，而您却认为这是一种危险的、剥夺生命体验的停滞。您底层的心理动力是对新鲜事物和自我边界探索的极度渴求。您宁可去面对明天可能颗粒无收的未知波折，也无法忍受每天重复毫无创造性的平庸日常。</p>
+                   <p class="report-p">在商业交换的逻辑上，您极度排斥企业作为一个庞大的中间商，去抽取您劳动的剩余价值。您倾向于直接面向市场，凭借个人的手艺、创意、专业咨询或知识输出来完成价值交付。您更愿意承受市场的冷酷毒打，也不愿忍受一个平庸上级的指手画脚。然而，这种彻底脱离组织庇护的生存方式，要求您具备极其强悍的心理素质。当您越过公司这个庞大的中间体时，您同时也失去了它所提供的遮风避雨的资源：您不再有带薪的病假，不再有公司法务为您处理合同纠纷，不再有完善的培训体系为您兜底。您必须独自面对市场的所有无情与残酷。您不仅是自己最核心的生产力，还要同时兼任自己的销售、财务、甚至心理疏导员。您用极高的财务风险和巨大的心理不确定性，买下了自己人生的绝对控制权。</p>`,
+            risk: `<p class="report-p">选择了旷野，并不意味着自然而然地获得了洒脱。在这种生存模式的长周期运转中，潜藏着两个足以摧毁个体意志的结构性危机。</p>
+                   <p class="report-p">首当其冲的是极其隐蔽的自我剥削陷阱。当您彻底摆脱了朝九晚五的打卡机和外部主管的监视后，如果您缺乏极度严苛的自我管理能力，自由极易演变为生活秩序的全面溃败。为了应对收入的不稳定性，或者为了追逐某个项目的完美交付，独立创造者往往会对自己施加比任何资本家都更残忍的剥削。您的工作与生活将彻底失去物理和时间上的边界，客厅变成办公室，深夜变成工作日。您逃离了一个糟糕的老板，却可能在不知不觉中，让自己成为了一个更加严苛、不近人情的奴隶主，最终导致体力和心理的严重透支。</p>
+                   <p class="report-p">更为致命的危机在于社会性隔离带来的精神枯竭。人类在漫长的进化中保留了群居和通过社交获取安全感的本能。长期的单打独斗，意味着您切断了同事间那种虽然浅薄但能提供日常信息输入的非正式交流。在遭遇事业低谷、灵感枯竭或个人健康出现问题时，由于缺乏组织网络的支持，那种孤立无援的虚无感和恐慌感会被无限放大。出了事无人托底的绝对孤独，足以摧毁一个人继续独立坚持的全部意志。</p>`,
+            advice: `<p class="report-p">选择旷野绝不是选择散漫，相反，真正的自由必须建立在比在体制内更加冷酷的自律基础之上。为了确保您能在这条少有人走的路上长期存活，您必须立刻着手构建以下两道生命防线。</p>
+                     <p class="report-p">首先，您必须建立一套具有法律般效力的个人运行系统。既然您拒绝了公司的管理，您就必须自己接管自己。这包括确立极其严格的作息纪律，强行划定工作与休息的物理边界。更关键的是，您必须建立一条不可逾越的财务红线。自由职业的收入是脉冲式的，您必须在顺境时极度克制消费欲望，强制性地为自己建立一个足以支撑一到两年毫无收入状态的现金储备池。这个缓冲池是您面对甲方提出无理要求时敢于拒绝的底气，也是您在遭遇创作瓶颈期不至于陷入生存恐慌的唯一救生圈。</p>
+                     <p class="report-p">其次，您必须积极构建去中心化的非正式支持网络。不要让自己成为一座彻底孤立的孤岛。建议您主动去寻找、甚至发起由同类独立工作者构成的微型社群。这种网络的目的，不是为了传统意义上的逢场作戏和资源攀附，而是为了建立一种平等的、基于互助精神的弱连接。当您需要技术外包时，当您遇到税务难题时，或者仅仅当您需要倾诉作为独立个体的深度焦虑时，这个网络能够为您提供实质性的托底与情绪共鸣。在没有大树遮蔽的荒野中，与其他同样清醒的游牧民结伴前行，是抵御寒冬与未知风险最有效的终极策略。</p>`
+        },
+        'E': {
+            core: `<p class="report-p">在这场生存测试中，类型E并不是一种常规的人格分类，而是一个极为严肃的结构性预警信号。数据交叉分析向我们揭示了一个隐蔽而残酷的真相：您当前的内在价值诉求、心理防御机制，与您目前所处的外部环境（或者是您正强迫自己去追求的某种生存模式）之间，发生了极其严重的断裂与错位。</p>
+                   <p class="report-p">您就像一株原本应该生长在温润雨林里的植物，却因为对某种世俗成就的渴望，强行将自己栽种在了残酷的戈壁滩上。这种内在真实自我与外在生存环境的剧烈摩擦，正是导致您近期频繁感到焦虑、无力以及精神严重透支的根本动因。造成这种错位最核心的原因，往往在于您的“世俗进取心”远远超出了您“心理防御机制”的承受极限。在理智层面上，您极度渴望获得主流社会认可的成功、财富或极高的专业地位。在情境测试中，当面临职业路径的选择时，您明确表现出了对高薪和突破性增长的渴望，您试图效仿那些高效理性的个体，用承受极高压力的代价去博取人生的跃升。</p>
+                   <p class="report-p">然而，您的底层心理素质却保留着极其柔软、敏感的一面。您始终无法像真正的“无情机器”那样，将“工作角色”与“真实的自我”进行彻底的切割。在测试中，当假设您主导的方案在跨部门会议上遭到严厉的公开否定时，您的真实反应暴露了这种脆弱性——您无法做到仅仅把这当成一次常规的商业反馈，而是会将其内化为对您个人尊严和能力的直接否定。您会在深夜里反复回味被批评的尴尬细节，陷入深度的自我怀疑。这就形成了一个极其残酷的生存悖论：您强迫自己走上了最前线的绞肉机战场，却忘记了给自己穿上防弹衣。您用极其脆弱的、甚至充满理想主义的血肉之躯，去硬扛现代商业机器那种冷冰冰的、只看重投入产出比的无情倾轧。每一次来自外部的挫折，都会顺畅无阻地穿透您薄弱的心理防线，对您的自我价值感造成毁灭性的打击。</p>
+                   <p class="report-p">除了职场上的撕裂，您的错位还可能体现在生活方式与社会关系的处理上。一方面，您在观念上极度推崇现代都市那种原子化的、互不打扰的生活方式。您注重隐私，排斥复杂的人际交往。面对远房亲戚借住的请求，您内心会感到强烈的私人空间被侵占的抗拒感；您极其厌恶职场中那些需要察言观色、论资排辈的隐性规则，渴望在一个只看重专业能力的真空环境中生活。但在另一方面，当您真正在现实中遭遇重大阻碍，或者需要解决极其复杂的私人事务时，您却又下意识地缺乏依靠纯粹的商业契约和自身能力去解决问题的底气。您的第一反应依然是倒退回传统的熟人网络，试图去寻找某种能够通融的“关系”。这种“既看不起人情世故，又离不开人情托底”的认知失调，让您在任何一种环境中都感到格格不入。在崇尚效率的大城市，您觉得人情冷漠、竞争残酷；退回到老家或传统体制内，您又觉得毫无隐私、思想窒息。您悬浮在这两种生态之间，无法在任何一边扎下深根。</p>`,
+            risk: `<p class="report-p">长期处于这种深度的错位中，最致命的危险并非事业上的停滞，而是您正在对自己进行一场旷日持久的“心理霸凌”。</p>
+                   <p class="report-p">心理学中有一个概念叫做“基本归因错误”，意思是我们很容易把环境的、结构性的问题，错误地归结为个人的性格缺陷。在长期的挫折中，您不仅没有意识到是这片土壤根本不适合您，反而将所有的痛苦都内化为对自己的攻击。您在深夜里反复质问自己：“为什么别人都能适应这种高压，而我却这么痛苦？”、“一定是我太脆弱、太无能、抗压能力太差了。”</p>
+                   <p class="report-p">这种持续不断的自我贬低，会像慢性毒药一样逐渐摧毁您的自信心与行动力。在社会学看来，这是一种极其悲哀的“系统性压迫的内化”。当您把环境的不匹配当成自己的原罪时，您就陷入了“习得性无助”——您会感到绝望，觉得自己无论怎么努力都无法改变现状。如果这种高度紧绷和自我攻击的状态不能被及时阻断，您的心理能量将很快被彻底耗竭，并极大概率转化为失眠、情绪崩溃甚至更严重的躯体化反应，对您的生命质量造成不可逆的实质性损伤。</p>`,
+            advice: `<p class="report-p">这份报告的最终目的，是希望您可以停止内耗。请立刻停止这场毫无意义的“自我霸凌”。您必须从社会学的宏观视角重新审视当前的困境——您这棵植物并没有生病，您只是被强行栽种在了一片盐碱地里。</p>
+                     <p class="report-p">第一步，放弃对某种特定世俗成功的偏执执念。承认自己的心理特质无法适应冷酷的绞肉机体制，或者承认自己无法适应虚伪的人情社会，这绝不是懦弱，而是极高的自我认知与智慧。请坦诚地面对自己内心的软弱与敏感，并承认这并不丢人。停止用那些被社交媒体或主流价值观定义的“成功标准”来绑架自己。如果您天生就是一个需要情感滋养、无法承受高强度竞争的人，那么请立刻放下对一线城市极高薪酬的虚假执念。承认自己需要一个能按时下班、睡个好觉的环境，是自救的起点。</p>
+                     <p class="report-p">第二步，果断启动物理或职业生态的“迁徙程序”。不要试图去改变那些庞大而僵化的组织结构，更不要试图通过残忍的自我催眠来改变自己的人格底色。请仔细回想您在测试中那些最本能、最顺从内心的选择，去寻找那片真正能兼容您的土壤。如果您极度渴望不被打扰的专业主义，请尽早离开需要拉帮结派的复杂圈子，哪怕这意味着薪水的降低；如果您内心其实更渴望安稳和家人的陪伴，请勇敢地从那些掏空您精力的内卷漩涡中撤退。物理空间、行业赛道或者生活方式的彻底转移，是解决您当前精神困局的唯一有效途径。请记住，一棵不适合沙漠的树，最该做的不是努力让自己长出仙人掌的刺，而是竭尽全力地将根系连拔起，去寻找那片属于自己的水源。</p>`
+        }
+    };
+
+    let txtInfo = resultTexts[typeStr];
+    
+    // 提取动态观测点，深化理论解释
+    let dynamicHtml = '';
+    const checkAns = (qIndex, targetScores) => targetScores.includes(userAnswers[qIndex].val);
+
+    if (typeStr === 'A') {
+        if (checkAns(28, [4, 3])) { // 29题 X部门
+            dynamicHtml += `<div class="dynamic-box"><p><b>[组织控制方式的理性选择]</b> 您在情境测试中明确倾向于接受严密的数据考核而排斥人际应酬。这表明您深刻理解现代科层制通过“非人格化”指标进行管理的本质。您宁愿承受透明的剥削，也不愿卷入模糊的权力依附关系中，这是一种极高效率的精力管理策略。</p></div>`;
+        }
+        if (checkAns(3, [4, 3])) { // 4题 繁琐私人事务
+            dynamicHtml += `<div class="dynamic-box"><p><b>[社会资本的商品化替代]</b> 在处理现实阻碍时，您下意识回避了启动非正式的人际网络（托关系），而是选择遵循正式规则或购买商业服务。这种行为模式展现了您对现代商业文明高度的信任，以及对传统人情网络隐性成本的深刻警惕。</p></div>`;
+        }
+    }
+    else if (typeStr === 'B') {
+        if (checkAns(18, [2, 1])) { // 19题 远房亲戚
+            dynamicHtml += `<div class="dynamic-box"><p><b>[地缘网络边界的渗透性]</b> 面对私人空间被侵入的假设，您展现出了对传统伦理规范的高度顺从。这并非软弱，而是一种生存智慧——您清醒地认识到，适度让渡个体隐私是维持差序格局网络、获取长期社会支持系统的必要“税收”。</p></div>`;
+        }
+        if (checkAns(24, [2, 1])) { // 25题 福利抉择
+            dynamicHtml += `<div class="dynamic-box"><p><b>[终极安全感的体制偏好]</b> 在面对短期巨额资本与长期保障的抉择时，您毫不犹豫地选择了后者。这反映出您对市场经济波动性深不见底的恐惧，只有那些拥有强大兜底能力的结构性力量，才能真正平息您的生存焦虑。</p></div>`;
+        }
+    }
+    else if (typeStr === 'C') {
+        if (checkAns(13, [4, 3])) { // 14题 遭受批评
+            dynamicHtml += `<div class="dynamic-box"><p><b>[心理防御与认知解绑]</b> 面对强烈的外部否定，您展现出了卓越的认知重塑能力。您能够精准地将“对工作角色的批评”与“对自我本体的攻击”进行切割，这种心理防御机制是您在复杂组织中保持精神健康的坚固基石。</p></div>`;
+        }
+        if (checkAns(17, [4, 3])) { // 18题 圈子重合
+            dynamicHtml += `<div class="dynamic-box"><p><b>[社会角色的强制隔离]</b> 您对工作场域与私人生活场域的重叠表现出极低的容忍度。通过建立严格的社交隔离墙，您有效地阻断了组织权力向个体私人生活领域的渗透，确立了不容侵犯的主体性。</p></div>`;
+        }
+    }
+    else if (typeStr === 'D') {
+        if (checkAns(6, [4])) { // 7题 望到头
+            dynamicHtml += `<div class="dynamic-box"><p><b>[停滞恐惧与存在主义焦虑]</b> 对多数人而言意味着安全的确定性，在您的感知系统中却引发了强烈的存在主义危机。您对异质性体验的极度渴求，驱动着您不断打破既有结构，这种动力是您走向彻底独立的源泉，也是不稳定的根源。</p></div>`;
+        }
+        if (checkAns(14, [4])) { // 15题 介绍自己
+            dynamicHtml += `<div class="dynamic-box"><p><b>[自我认同的去中心化]</b> 您的价值支点已完全脱离了外部权威机构的背书。在社会交往中，您拒绝使用组织的符号体系来定义自己，这标志着您在精神上已经完成了真正的断奶，具备了抵御任何组织规训的心理基础。</p></div>`;
+        }
+    }
+    else if (typeStr === 'E') {
+        if (checkAns(13, [2, 1]) && checkAns(8, [4, 3])) { // 14题内耗 + 9题高薪
+            dynamicHtml += `<div class="dynamic-box"><p><b>[成就动机与心理脆弱性的撕裂]</b> 数据显示您的世俗成就动机极强，但抗挫折的心理韧性却处于低位。这导致您在追求高收益的必须承受的高压竞争中，像一个没有穿戴护甲的士兵冲上战场，每一次交锋都在造成严重的心理创伤。</p></div>`;
+        }
+        if (checkAns(19, [4]) && s100.D1 <= 40) { 
+            dynamicHtml += `<div class="dynamic-box"><p><b>[观念现代化与资源依赖的悖论]</b> 您的思想意识已经高度向往都市原子化的自由生活，但在现实生存技能或资源获取上，却依然重度依赖传统的家庭或熟人网络。这种知行不一的矛盾，是导致您社会化过程极度痛苦的核心症结所在。</p></div>`;
+        }
+    }
+    
+    let reportHtml = `<div class="section-title">🧠 核心生态侧写与底层逻辑</div><div class="report-p">${txtInfo.core}</div>`;
+    
+    // 追加全新的【六维特征数据解析】模块 (深化学术解读)
+    reportHtml += `<div class="section-title">📊 六维特征微观解析</div>`;
+    reportHtml += `<p class="report-p" style="font-size:15px; color:#6b7280;">基于社会学与心理测量学理论，以下是系统根据您前30道情境选择，为您推演出的深层特征图谱：</p>`;
+    reportHtml += `<ul class="dim-detail-list">`;
+    reportHtml += getDimAnalysis('D1', s100.D1, DIMS.D1);
+    reportHtml += getDimAnalysis('D2', s100.D2, DIMS.D2);
+    reportHtml += getDimAnalysis('D3', s100.D3, DIMS.D3);
+    reportHtml += getDimAnalysis('D4', s100.D4, DIMS.D4);
+    reportHtml += getDimAnalysis('D5', s100.D5, DIMS.D5);
+    reportHtml += getDimAnalysis('D6', s100.D6, DIMS.D6);
+    reportHtml += `</ul>`;
+
+    if(dynamicHtml !== '') {
+        reportHtml += `<div class="section-title">🧬 关键行为截面与防御机制观测</div>${dynamicHtml}<br>`;
+    }
+
+    reportHtml += `<div class="section-title">⏳ 结构性脆弱与系统性风险预警</div>
+                   <div class="crisis-box"><h5>⚠️ 核心生存危机预判</h5>${txtInfo.risk}</div>`;
+                   
+    reportHtml += `<div class="section-title">💡 生态位迁徙与长期防御策略</div>
+                   <div class="rule-box"><h5>🛡️ 现实主义干预指南</h5>${txtInfo.advice}</div>`;
+                   
+    return reportHtml;
+}
+
+/* ================= 绘图与工具 ================= */
+function setupCanvas(id, w, h) {
+    const c = document.getElementById(id);
+    const ctx = c.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    c.style.width = w + 'px'; c.style.height = h + 'px';
+    c.width = w * dpr; c.height = h * dpr;
+    ctx.scale(dpr, dpr);
+    return ctx;
+}
+
+// 绘制雷达图
+function drawRadar(s100) {
+    const ctx = setupCanvas('radarChart', 280, 280);
+    const keys = ['D1', 'D2', 'D3', 'D4', 'D5', 'D6'];
+    const labels = ['生存手牌', '折腾指数', '职场抽离', '社交边界', '回报耐心', '职场消耗'];
+    const cx=140, cy=140, r=90, sides=6;
+    
+    // 背景网格
+    for(let i=1; i<=4; i++){ 
+        ctx.beginPath(); 
+        for(let j=0; j<sides; j++){ 
+            let a=(Math.PI*2/sides)*j-Math.PI/2; 
+            let rad = (r/4)*i;
+            if(j==0) ctx.moveTo(cx+Math.cos(a)*rad, cy+Math.sin(a)*rad);
+            else ctx.lineTo(cx+Math.cos(a)*rad, cy+Math.sin(a)*rad); 
+        } 
+        ctx.closePath(); ctx.strokeStyle='#e2e8f0'; ctx.stroke(); 
+    }
+    
+    // 数据多边形
+    ctx.beginPath(); 
+    keys.forEach((k,i)=>{ 
+        let ratio = s100[k] / 100;
+        let displayRatio = 0.15 + (ratio * 0.85);
+        let a=(Math.PI*2/sides)*i-Math.PI/2; 
+        let px = cx+Math.cos(a)*r*displayRatio;
+        let py = cy+Math.sin(a)*r*displayRatio;
+        if(i==0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.closePath(); 
+    ctx.fillStyle='rgba(9, 132, 227, 0.2)'; ctx.fill(); 
+    ctx.strokeStyle='#0984e3'; ctx.lineWidth=2.5; ctx.stroke();
+    
+    // 画布标签
+    ctx.fillStyle='#555'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    labels.forEach((l,i)=>{ 
+        let a=(Math.PI*2/sides)*i-Math.PI/2; 
+        ctx.fillText(l, cx+Math.cos(a)*(r+25), cy+Math.sin(a)*(r+25)); 
+    });
+}
+</script>
+</body>
+</html>
